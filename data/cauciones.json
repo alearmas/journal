@@ -1,0 +1,32 @@
+[
+  {
+    "id": "2b9d1c58fe0b2a2367d689eb",
+    "broker": "Balanz",
+    "trade_date": "2026-01-10T00:00:00Z",
+    "maturity_date": "2026-01-11T00:00:00Z",
+    "term_days": 1,
+    "principal": "1000000",
+    "tna": "85.5",
+    "gross_interest": "2375",
+    "fees": "50",
+    "taxes": "421",
+    "net_interest": "1904",
+    "notes": "overnight",
+    "created_at": "2026-01-13T22:45:47.831775-03:00"
+  },
+  {
+    "id": "8b2ba110daa13dfbbde0ed07",
+    "broker": "Balanz",
+    "trade_date": "2026-01-10T00:00:00Z",
+    "maturity_date": "2026-01-11T00:00:00Z",
+    "term_days": 1,
+    "principal": "1000000",
+    "tna": "85.5",
+    "gross_interest": "2375",
+    "fees": "50",
+    "taxes": "421",
+    "net_interest": "1904",
+    "notes": "overnight balanz",
+    "created_at": "2026-01-13T23:04:29.376437-03:00"
+  }
+]
