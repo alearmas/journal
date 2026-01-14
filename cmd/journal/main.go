@@ -68,7 +68,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Println(`Usage:
+	fmt.Print(`Usage:
   journal add --principal 1000000.00 --tna 85.5 --term 1 --fees 50.00 --taxes 421.00 --date 2026-01-10 --notes "overnight"
   journal list
   journal summary

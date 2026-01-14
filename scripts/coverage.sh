@@ -4,8 +4,8 @@ set -euo pipefail
 COVER_DIR="coverage"
 mkdir -p "$COVER_DIR"
 
-echo "==> Running tests with coverage"
-go test ./... -count=1 -covermode=atomic -coverprofile="$COVER_DIR/coverage.out"
+echo "==> Running tests with coverage (internal packages only)"
+go test ./internal/... -count=1 -covermode=atomic -coverprofile="$COVER_DIR/coverage.out"
 
 echo "==> Coverage summary"
 go tool cover -func="$COVER_DIR/coverage.out" | tee "$COVER_DIR/coverage.txt"

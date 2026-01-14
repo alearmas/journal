@@ -4,7 +4,7 @@ import "github.com/shopspring/decimal"
 
 var (
 	hundred    = decimal.NewFromInt(100)
-	daysInYear = decimal.NewFromInt(365)
+	daysInYear = decimal.NewFromInt(360)
 )
 
 type CompareInput struct {
