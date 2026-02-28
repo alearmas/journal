@@ -67,7 +67,7 @@ ORDER BY date ASC, created_at ASC
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() { _ = rows.Close() }()
 
 	var out []Movimiento
 	for rows.Next() {

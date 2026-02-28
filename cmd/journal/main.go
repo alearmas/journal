@@ -57,10 +57,10 @@ func main() {
 	}
 
 	if closer, ok := repo.(io.Closer); ok {
-		defer closer.Close()
+		defer func() { _ = closer.Close() }()
 	}
 	if closer, ok := mrepo.(io.Closer); ok {
-		defer closer.Close()
+		defer func() { _ = closer.Close() }()
 	}
 
 	svc := service.NewCaucionService(repo)

@@ -14,7 +14,7 @@ func TestMovimientoSQLite_ListEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new repo: %v", err)
 	}
-	defer repo.Close()
+	defer func() { _ = repo.Close() }()
 
 	items, err := repo.List(context.Background())
 	if err != nil {
@@ -31,7 +31,7 @@ func TestMovimientoSQLite_AppendAndList(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new repo: %v", err)
 	}
-	defer repo.Close()
+	defer func() { _ = repo.Close() }()
 
 	ctx := context.Background()
 	m := domain.Movimiento{
@@ -80,7 +80,7 @@ func TestMovimientoSQLite_RetiroType(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new repo: %v", err)
 	}
-	defer repo.Close()
+	defer func() { _ = repo.Close() }()
 
 	ctx := context.Background()
 	m := domain.Movimiento{
@@ -111,7 +111,7 @@ func TestMovimientoSQLite_DuplicateIDError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new repo: %v", err)
 	}
-	defer repo.Close()
+	defer func() { _ = repo.Close() }()
 
 	ctx := context.Background()
 	m := domain.Movimiento{
