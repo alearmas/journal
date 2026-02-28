@@ -12,7 +12,7 @@ func WriteCaucionesCSV(path string, items []domain.Caucion) error {
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	w := csv.NewWriter(f)
 	defer w.Flush()

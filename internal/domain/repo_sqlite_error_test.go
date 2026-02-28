@@ -58,7 +58,7 @@ func TestSQLiteRepository_ListEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if items != nil && len(items) != 0 {
+	if len(items) != 0 {
 		t.Fatalf("expected empty list, got %d items", len(items))
 	}
 }
@@ -122,12 +122,8 @@ func TestSQLiteRepository_DecimalPrecision(t *testing.T) {
 		{"net", got.NetInterest.String(), "27667.83"},
 	}
 
-	for _, c := range checks {
-		// Use StringFixed for consistent comparison
-		if got.Principal.StringFixed(2) == "123456789.99" {
-			// just verify it round-trips
-		}
-		_ = c // individual checks below
+	for _, ch := range checks {
+		_ = ch // individual checks below
 	}
 
 	if got.Principal.StringFixed(2) != "123456789.99" {
