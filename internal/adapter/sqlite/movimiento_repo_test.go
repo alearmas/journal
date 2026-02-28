@@ -1,6 +1,7 @@
-package domain_test
+package sqlite_test
 
 import (
+	"alearmas/tradingJournal/internal/adapter/sqlite"
 	"alearmas/tradingJournal/internal/domain"
 	"context"
 	"path/filepath"
@@ -10,7 +11,7 @@ import (
 
 func TestMovimientoSQLite_ListEmpty(t *testing.T) {
 	tmp := t.TempDir()
-	repo, err := domain.NewMovimientoSQLiteRepository(filepath.Join(tmp, "mov.db"))
+	repo, err := sqlite.NewMovimientoSQLiteRepository(filepath.Join(tmp, "mov.db"))
 	if err != nil {
 		t.Fatalf("new repo: %v", err)
 	}
@@ -27,7 +28,7 @@ func TestMovimientoSQLite_ListEmpty(t *testing.T) {
 
 func TestMovimientoSQLite_AppendAndList(t *testing.T) {
 	tmp := t.TempDir()
-	repo, err := domain.NewMovimientoSQLiteRepository(filepath.Join(tmp, "mov.db"))
+	repo, err := sqlite.NewMovimientoSQLiteRepository(filepath.Join(tmp, "mov.db"))
 	if err != nil {
 		t.Fatalf("new repo: %v", err)
 	}
@@ -76,7 +77,7 @@ func TestMovimientoSQLite_AppendAndList(t *testing.T) {
 
 func TestMovimientoSQLite_RetiroType(t *testing.T) {
 	tmp := t.TempDir()
-	repo, err := domain.NewMovimientoSQLiteRepository(filepath.Join(tmp, "mov.db"))
+	repo, err := sqlite.NewMovimientoSQLiteRepository(filepath.Join(tmp, "mov.db"))
 	if err != nil {
 		t.Fatalf("new repo: %v", err)
 	}
@@ -107,7 +108,7 @@ func TestMovimientoSQLite_RetiroType(t *testing.T) {
 
 func TestMovimientoSQLite_DuplicateIDError(t *testing.T) {
 	tmp := t.TempDir()
-	repo, err := domain.NewMovimientoSQLiteRepository(filepath.Join(tmp, "dup.db"))
+	repo, err := sqlite.NewMovimientoSQLiteRepository(filepath.Join(tmp, "dup.db"))
 	if err != nil {
 		t.Fatalf("new repo: %v", err)
 	}
@@ -133,7 +134,7 @@ func TestMovimientoSQLite_DuplicateIDError(t *testing.T) {
 
 func TestMovimientoSQLite_Close(t *testing.T) {
 	tmp := t.TempDir()
-	repo, err := domain.NewMovimientoSQLiteRepository(filepath.Join(tmp, "close.db"))
+	repo, err := sqlite.NewMovimientoSQLiteRepository(filepath.Join(tmp, "close.db"))
 	if err != nil {
 		t.Fatalf("new repo: %v", err)
 	}
@@ -143,7 +144,7 @@ func TestMovimientoSQLite_Close(t *testing.T) {
 }
 
 func TestMovimientoSQLite_InvalidPath(t *testing.T) {
-	_, err := domain.NewMovimientoSQLiteRepository("/nonexistent/deeply/nested/path/mov.sqlite")
+	_, err := sqlite.NewMovimientoSQLiteRepository("/nonexistent/deeply/nested/path/mov.sqlite")
 	if err == nil {
 		t.Fatal("expected error for invalid path, got nil")
 	}

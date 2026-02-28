@@ -8,18 +8,18 @@ import (
 )
 
 type MonthSummary struct {
-	Month string
+	Month string `json:"month"`
 
-	Count int
+	Count int `json:"count"`
 
-	TotalPrincipal decimal.Decimal
-	TotalGross     decimal.Decimal
-	TotalFees      decimal.Decimal
-	TotalTaxes     decimal.Decimal
-	TotalNet       decimal.Decimal
+	TotalPrincipal decimal.Decimal `json:"total_principal"`
+	TotalGross     decimal.Decimal `json:"total_gross"`
+	TotalFees      decimal.Decimal `json:"total_fees"`
+	TotalTaxes     decimal.Decimal `json:"total_taxes"`
+	TotalNet       decimal.Decimal `json:"total_net"`
 
 	// Weighted average TNA by principal (simple, practical).
-	WeightedAvgTNA decimal.Decimal
+	WeightedAvgTNA decimal.Decimal `json:"weighted_avg_tna"`
 }
 
 func FilterByMonth(items []domain.Caucion, month string) ([]domain.Caucion, error) {
