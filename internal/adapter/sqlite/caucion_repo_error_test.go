@@ -1,6 +1,7 @@
-package domain_test
+package sqlite_test
 
 import (
+	"alearmas/tradingJournal/internal/adapter/sqlite"
 	"alearmas/tradingJournal/internal/domain"
 	"context"
 	"errors"
@@ -13,7 +14,7 @@ func TestSQLiteRepository_DuplicateIDError(t *testing.T) {
 	tmp := t.TempDir()
 	dbPath := filepath.Join(tmp, "dup.db")
 
-	repo, err := domain.NewSQLiteRepository(dbPath)
+	repo, err := sqlite.NewSQLiteRepository(dbPath)
 	if err != nil {
 		t.Fatalf("new sqlite repo: %v", err)
 	}
@@ -38,7 +39,6 @@ func TestSQLiteRepository_DuplicateIDError(t *testing.T) {
 		t.Fatalf("first append: %v", err)
 	}
 
-	// Second append with same ID should fail (PRIMARY KEY constraint)
 	err = repo.Append(context.Background(), c)
 	if err == nil {
 		t.Fatal("expected error for duplicate ID, got nil")
@@ -49,7 +49,7 @@ func TestSQLiteRepository_ListEmpty(t *testing.T) {
 	tmp := t.TempDir()
 	dbPath := filepath.Join(tmp, "empty.db")
 
-	repo, err := domain.NewSQLiteRepository(dbPath)
+	repo, err := sqlite.NewSQLiteRepository(dbPath)
 	if err != nil {
 		t.Fatalf("new sqlite repo: %v", err)
 	}
@@ -64,8 +64,7 @@ func TestSQLiteRepository_ListEmpty(t *testing.T) {
 }
 
 func TestNewSQLiteRepository_InvalidPath(t *testing.T) {
-	// A path that should fail to open or init
-	_, err := domain.NewSQLiteRepository("/nonexistent/deeply/nested/path/db.sqlite")
+	_, err := sqlite.NewSQLiteRepository("/nonexistent/deeply/nested/path/db.sqlite")
 	if err == nil {
 		t.Fatal("expected error for invalid db path, got nil")
 	}
@@ -75,7 +74,7 @@ func TestSQLiteRepository_DecimalPrecision(t *testing.T) {
 	tmp := t.TempDir()
 	dbPath := filepath.Join(tmp, "precision.db")
 
-	repo, err := domain.NewSQLiteRepository(dbPath)
+	repo, err := sqlite.NewSQLiteRepository(dbPath)
 	if err != nil {
 		t.Fatalf("new sqlite repo: %v", err)
 	}
@@ -109,22 +108,6 @@ func TestSQLiteRepository_DecimalPrecision(t *testing.T) {
 	}
 
 	got := items[0]
-	checks := []struct {
-		name string
-		got  string
-		want string
-	}{
-		{"principal", got.Principal.String(), "123456789.99"},
-		{"tna", got.TNA.String(), "97.25"},
-		{"gross", got.GrossInterest.String(), "33356.16"},
-		{"fees", got.Fees.String(), "100.50"},  // Note: trailing zero trimmed by decimal
-		{"taxes", got.Taxes.String(), "5587.83"},
-		{"net", got.NetInterest.String(), "27667.83"},
-	}
-
-	for _, ch := range checks {
-		_ = ch // individual checks below
-	}
 
 	if got.Principal.StringFixed(2) != "123456789.99" {
 		t.Fatalf("principal: got %s, want 123456789.99", got.Principal.StringFixed(2))
@@ -133,7 +116,6 @@ func TestSQLiteRepository_DecimalPrecision(t *testing.T) {
 		t.Fatalf("tna: got %s, want 97.25", got.TNA.String())
 	}
 
-	// Verify dates round-trip properly
 	if !got.TradeDate.Equal(c.TradeDate) {
 		t.Fatalf("trade_date: got %s, want %s", got.TradeDate, c.TradeDate)
 	}
@@ -146,7 +128,7 @@ func TestSQLiteRepository_Close(t *testing.T) {
 	tmp := t.TempDir()
 	dbPath := filepath.Join(tmp, "close.db")
 
-	repo, err := domain.NewSQLiteRepository(dbPath)
+	repo, err := sqlite.NewSQLiteRepository(dbPath)
 	if err != nil {
 		t.Fatalf("new sqlite repo: %v", err)
 	}
@@ -157,9 +139,6 @@ func TestSQLiteRepository_Close(t *testing.T) {
 }
 
 func TestSQLiteRepository_ParseDateError(t *testing.T) {
-	// This test verifies that ErrParse is properly used, but we can't easily
-	// inject bad dates into SQLite without raw SQL. We test the error type exists
-	// and works correctly.
 	inner := errors.New("bad date")
 	e := &domain.ErrParse{Field: "trade_date", Value: "not-a-date", Err: inner}
 	if e.Error() == "" {

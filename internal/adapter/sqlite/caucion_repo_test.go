@@ -1,6 +1,7 @@
-package domain_test
+package sqlite_test
 
 import (
+	"alearmas/tradingJournal/internal/adapter/sqlite"
 	"alearmas/tradingJournal/internal/domain"
 	"context"
 	"path/filepath"
@@ -22,7 +23,7 @@ func TestSQLiteRepository_AppendAndList(t *testing.T) {
 	tmp := t.TempDir()
 	dbPath := filepath.Join(tmp, "journal.db")
 
-	repo, err := domain.NewSQLiteRepository(dbPath)
+	repo, err := sqlite.NewSQLiteRepository(dbPath)
 	if err != nil {
 		t.Fatalf("new sqlite repo: %v", err)
 	}
@@ -66,7 +67,6 @@ func TestSQLiteRepository_AppendAndList(t *testing.T) {
 		t.Fatalf("unexpected ids order: %s, %s", items[0].ID, items[1].ID)
 	}
 
-	// Spot-check decimals came back intact
 	if items[0].Principal.StringFixed(2) != "1000.00" {
 		t.Fatalf("principal mismatch: %s", items[0].Principal.StringFixed(2))
 	}
