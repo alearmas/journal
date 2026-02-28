@@ -1,6 +1,7 @@
 package main
 
 import (
+	"alearmas/tradingJournal/internal/capital"
 	"alearmas/tradingJournal/internal/compare"
 	"alearmas/tradingJournal/internal/domain"
 	"alearmas/tradingJournal/internal/export"
@@ -31,9 +32,13 @@ func main() {
 	store := getenv("JOURNAL_STORE", "json")
 
 	var repo domain.CaucionRepository
+	var mrepo domain.MovimientoRepository
+
 	switch store {
 	case "json":
 		repo = domain.NewFileJSONRepository(dataPath)
+		mpath := getenv("JOURNAL_MOVEMENTS", "data/movimientos.json")
+		mrepo = domain.NewMovimientoFileJSONRepository(mpath)
 	case "sqlite":
 		dbPath := getenv("JOURNAL_DB", "data/journal.db")
 		sqlRepo, err := domain.NewSQLiteRepository(dbPath)
@@ -41,6 +46,12 @@ func main() {
 			die(1, "error opening sqlite: %v", err)
 		}
 		repo = sqlRepo
+
+		msqlRepo, err := domain.NewMovimientoSQLiteRepository(dbPath)
+		if err != nil {
+			die(1, "error opening sqlite for movimientos: %v", err)
+		}
+		mrepo = msqlRepo
 	default:
 		die(2, "invalid JOURNAL_STORE, use json|sqlite")
 	}
@@ -48,8 +59,12 @@ func main() {
 	if closer, ok := repo.(io.Closer); ok {
 		defer closer.Close()
 	}
+	if closer, ok := mrepo.(io.Closer); ok {
+		defer closer.Close()
+	}
 
 	svc := service.NewCaucionService(repo)
+	msvc := service.NewMovimientoService(mrepo)
 
 	switch os.Args[1] {
 	case "add":
@@ -64,6 +79,12 @@ func main() {
 		exportCmd(svc, os.Args[2:])
 	case "compare":
 		compareCmd(os.Args[2:])
+	case "deposit":
+		depositCmd(msvc, os.Args[2:])
+	case "withdraw":
+		withdrawCmd(msvc, os.Args[2:])
+	case "balance":
+		balanceCmd(svc, msvc, os.Args[2:])
 	default:
 		usage()
 		os.Exit(2)
@@ -72,16 +93,20 @@ func main() {
 
 func usage() {
 	fmt.Print(`Usage:
-  journal add --principal 1000000.00 --tna 85.5 --term 1 --fees 50.00 --taxes 421.00 --date 2026-01-10 --notes "overnight"
+  journal add      --principal 1000000.00 --tna 85.5 --term 1 --fees 50.00 --taxes 421.00 --date 2026-01-10 --notes "overnight"
   journal list
   journal summary
+  journal deposit  --broker Balanz --amount 1000000.00 --date 2026-01-01 --notes "transferencia"
+  journal withdraw --broker Balanz --amount 200000.00  --date 2026-02-01
+  journal balance  [--broker Balanz]
 
 Notes:
   - Monetary values should be passed as strings compatible with decimal (e.g. 1000000, 1000000.00)
   - TNA is a percentage (e.g. 85.5)
 
 Env:
-  JOURNAL_DATA=path/to/cauciones.json (default: data/cauciones.json)
+  JOURNAL_DATA=path/to/cauciones.json     (default: data/cauciones.json)
+  JOURNAL_MOVEMENTS=path/to/movimientos.json (default: data/movimientos.json)
 `)
 }
 
@@ -327,6 +352,119 @@ func compareCmd(args []string) {
 	fmt.Printf("Caucion net: %s\n", out.CaucionNet.StringFixed(2))
 	fmt.Printf("PF gross:    %s\n", out.PFGross.StringFixed(2))
 	fmt.Printf("MM gross:    %s\n", out.MMGross.StringFixed(2))
+}
+
+func depositCmd(msvc *service.MovimientoService, args []string) {
+	fs := flag.NewFlagSet("deposit", flag.ExitOnError)
+	broker := fs.String("broker", "Balanz", "Broker name")
+	amountStr := fs.String("amount", "0", "Amount to deposit (decimal)")
+	dateStr := fs.String("date", "", "Date YYYY-MM-DD (optional, default: today)")
+	notes := fs.String("notes", "", "Notes")
+	_ = fs.Parse(args)
+
+	amount, err := decimal.NewFromString(*amountStr)
+	if err != nil {
+		die(2, "invalid --amount, expected decimal (e.g. 1000000.00)")
+	}
+
+	var date time.Time
+	if *dateStr != "" {
+		d, err := time.Parse("2006-01-02", *dateStr)
+		if err != nil {
+			die(2, "invalid --date, expected YYYY-MM-DD")
+		}
+		date = d
+	}
+
+	m, err := msvc.Register(context.Background(), service.RegisterMovimientoInput{
+		Broker: *broker,
+		Date:   date,
+		Type:   domain.Deposito,
+		Amount: amount,
+		Notes:  *notes,
+	})
+	if err != nil {
+		die(1, "error: %v", err)
+	}
+
+	fmt.Printf("Deposito registrado %s\n", m.ID)
+	fmt.Printf("Broker: %s  Fecha: %s  Monto: %s\n",
+		m.Broker, m.Date.Format("2006-01-02"), m.Amount.StringFixed(2))
+}
+
+func withdrawCmd(msvc *service.MovimientoService, args []string) {
+	fs := flag.NewFlagSet("withdraw", flag.ExitOnError)
+	broker := fs.String("broker", "Balanz", "Broker name")
+	amountStr := fs.String("amount", "0", "Amount to withdraw (decimal)")
+	dateStr := fs.String("date", "", "Date YYYY-MM-DD (optional, default: today)")
+	notes := fs.String("notes", "", "Notes")
+	_ = fs.Parse(args)
+
+	amount, err := decimal.NewFromString(*amountStr)
+	if err != nil {
+		die(2, "invalid --amount, expected decimal (e.g. 200000.00)")
+	}
+
+	var date time.Time
+	if *dateStr != "" {
+		d, err := time.Parse("2006-01-02", *dateStr)
+		if err != nil {
+			die(2, "invalid --date, expected YYYY-MM-DD")
+		}
+		date = d
+	}
+
+	m, err := msvc.Register(context.Background(), service.RegisterMovimientoInput{
+		Broker: *broker,
+		Date:   date,
+		Type:   domain.Retiro,
+		Amount: amount,
+		Notes:  *notes,
+	})
+	if err != nil {
+		die(1, "error: %v", err)
+	}
+
+	fmt.Printf("Retiro registrado %s\n", m.ID)
+	fmt.Printf("Broker: %s  Fecha: %s  Monto: %s\n",
+		m.Broker, m.Date.Format("2006-01-02"), m.Amount.StringFixed(2))
+}
+
+func balanceCmd(svc *service.CaucionService, msvc *service.MovimientoService, args []string) {
+	fs := flag.NewFlagSet("balance", flag.ExitOnError)
+	brokerFilter := fs.String("broker", "", "Filter by broker (optional)")
+	_ = fs.Parse(args)
+
+	cauciones, err := svc.List(context.Background())
+	if err != nil {
+		die(1, "error listing cauciones: %v", err)
+	}
+
+	movimientos, err := msvc.List(context.Background())
+	if err != nil {
+		die(1, "error listing movimientos: %v", err)
+	}
+
+	summaries := capital.Summarize(movimientos, cauciones, time.Now())
+
+	if len(summaries) == 0 {
+		fmt.Println("No hay datos de capital registrados.")
+		return
+	}
+
+	for _, s := range summaries {
+		if *brokerFilter != "" && s.Broker != *brokerFilter {
+			continue
+		}
+		fmt.Printf("--- %s ---\n", s.Broker)
+		fmt.Printf("  Depositado:  %s\n", s.TotalDeposited.StringFixed(2))
+		fmt.Printf("  Retirado:    %s\n", s.TotalWithdrawn.StringFixed(2))
+		fmt.Printf("  Saldo neto:  %s\n", s.NetBalance.StringFixed(2))
+		fmt.Printf("  Desplegado:  %s\n", s.DeployedPrincipal.StringFixed(2))
+		fmt.Printf("  Disponible:  %s\n", s.Available.StringFixed(2))
+		fmt.Printf("  Ganancia:    %s\n", s.TotalNetInterest.StringFixed(2))
+		fmt.Printf("  P&L %%:       %s%%\n", s.PnLPercent.StringFixed(4))
+	}
 }
 
 func getenv(k, def string) string {
