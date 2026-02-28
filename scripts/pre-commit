@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "==> pre-commit: formatting"
+go fmt ./...
+
+# Re-add any reformatted files so the commit includes the fixes.
+git diff --name-only | xargs -r git add
+
+echo "==> pre-commit: running tests"
+go test ./... -count=1
+
+echo "==> pre-commit: lint (optional, skipped if golangci-lint not installed)"
+if command -v golangci-lint &>/dev/null; then
+  golangci-lint run
+else
+  echo "    golangci-lint not found, skipping lint"
+fi
+
+echo "==> pre-commit: all checks passed"

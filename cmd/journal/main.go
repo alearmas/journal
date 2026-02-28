@@ -9,11 +9,17 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"time"
 
 	"github.com/shopspring/decimal"
 )
+
+func die(code int, format string, args ...any) {
+	fmt.Fprintf(os.Stderr, format+"\n", args...)
+	os.Exit(code)
+}
 
 func main() {
 	if len(os.Args) < 2 {
@@ -32,20 +38,17 @@ func main() {
 		dbPath := getenv("JOURNAL_DB", "data/journal.db")
 		sqlRepo, err := domain.NewSQLiteRepository(dbPath)
 		if err != nil {
-			_, err := fmt.Fprintln(os.Stderr, "error opening sqlite:", err)
-			if err != nil {
-				return
-			}
-			os.Exit(1)
+			die(1, "error opening sqlite: %v", err)
 		}
 		repo = sqlRepo
 	default:
-		_, err := fmt.Fprintln(os.Stderr, "invalid JOURNAL_STORE, use json|sqlite")
-		if err != nil {
-			return
-		}
-		os.Exit(2)
+		die(2, "invalid JOURNAL_STORE, use json|sqlite")
 	}
+
+	if closer, ok := repo.(io.Closer); ok {
+		defer closer.Close()
+	}
+
 	svc := service.NewCaucionService(repo)
 
 	switch os.Args[1] {
@@ -103,46 +106,26 @@ func addCmd(svc *service.CaucionService, args []string) {
 
 	principal, err := decimal.NewFromString(*principalStr)
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "invalid --principal, expected decimal (e.g. 1000000.00)")
-		if err != nil {
-			return
-		}
-		os.Exit(2)
+		die(2, "invalid --principal, expected decimal (e.g. 1000000.00)")
 	}
 	tna, err := decimal.NewFromString(*tnaStr)
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "invalid --tna, expected decimal (e.g. 85.5)")
-		if err != nil {
-			return
-		}
-		os.Exit(2)
+		die(2, "invalid --tna, expected decimal (e.g. 85.5)")
 	}
 	fees, err := decimal.NewFromString(*feesStr)
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "invalid --fees, expected decimal (e.g. 50.00)")
-		if err != nil {
-			return
-		}
-		os.Exit(2)
+		die(2, "invalid --fees, expected decimal (e.g. 50.00)")
 	}
 	taxes, err := decimal.NewFromString(*taxesStr)
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "invalid --taxes, expected decimal (e.g. 421.00)")
-		if err != nil {
-			return
-		}
-		os.Exit(2)
+		die(2, "invalid --taxes, expected decimal (e.g. 421.00)")
 	}
 
 	var tradeDate time.Time
 	if *dateStr != "" {
 		d, err := time.Parse("2006-01-02", *dateStr)
 		if err != nil {
-			_, err := fmt.Fprintln(os.Stderr, "invalid --date, expected YYYY-MM-DD")
-			if err != nil {
-				return
-			}
-			os.Exit(2)
+			die(2, "invalid --date, expected YYYY-MM-DD")
 		}
 		tradeDate = d
 	}
@@ -158,11 +141,7 @@ func addCmd(svc *service.CaucionService, args []string) {
 		Notes:     *notes,
 	})
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "error:", err)
-		if err != nil {
-			return
-		}
-		os.Exit(1)
+		die(1, "error: %v", err)
 	}
 
 	fmt.Printf("Saved caucion %s\n", c.ID)
@@ -188,11 +167,7 @@ func addCmd(svc *service.CaucionService, args []string) {
 func listCmd(svc *service.CaucionService) {
 	items, err := svc.List(context.Background())
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "error:", err)
-		if err != nil {
-			return
-		}
-		os.Exit(1)
+		die(1, "error: %v", err)
 	}
 	if len(items) == 0 {
 		fmt.Println("No cauciones found.")
@@ -217,11 +192,7 @@ func listCmd(svc *service.CaucionService) {
 func summaryCmd(svc *service.CaucionService) {
 	items, err := svc.List(context.Background())
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "error:", err)
-		if err != nil {
-			return
-		}
-		os.Exit(1)
+		die(1, "error: %v", err)
 	}
 
 	totalPrincipal := decimal.Zero
@@ -252,29 +223,17 @@ func reportCmd(svc *service.CaucionService, args []string) {
 	_ = fs.Parse(args)
 
 	if *month == "" {
-		_, err := fmt.Fprintln(os.Stderr, "missing --month YYYY-MM")
-		if err != nil {
-			return
-		}
-		os.Exit(2)
+		die(2, "missing --month YYYY-MM")
 	}
 
 	items, err := svc.List(context.Background())
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "error:", err)
-		if err != nil {
-			return
-		}
-		os.Exit(1)
+		die(1, "error: %v", err)
 	}
 
 	filtered, err := report.FilterByMonth(items, *month)
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "invalid --month:", err)
-		if err != nil {
-			return
-		}
-		os.Exit(2)
+		die(2, "invalid --month: %v", err)
 	}
 
 	s := report.SummarizeMonth(filtered, *month)
@@ -296,31 +255,19 @@ func exportCmd(svc *service.CaucionService, args []string) {
 
 	items, err := svc.List(context.Background())
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "error:", err)
-		if err != nil {
-			return
-		}
-		os.Exit(1)
+		die(1, "error: %v", err)
 	}
 
 	if *month != "" {
 		filtered, err := report.FilterByMonth(items, *month)
 		if err != nil {
-			_, err := fmt.Fprintln(os.Stderr, "invalid --month:", err)
-			if err != nil {
-				return
-			}
-			os.Exit(2)
+			die(2, "invalid --month: %v", err)
 		}
 		items = filtered
 	}
 
 	if err := export.WriteCaucionesCSV(*out, items); err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "error writing csv:", err)
-		if err != nil {
-			return
-		}
-		os.Exit(1)
+		die(1, "error writing csv: %v", err)
 	}
 
 	fmt.Println("CSV exported to:", *out)
@@ -343,51 +290,27 @@ func compareCmd(args []string) {
 
 	principal, err := decimal.NewFromString(*principalStr)
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "invalid --principal")
-		if err != nil {
-			return
-		}
-		os.Exit(2)
+		die(2, "invalid --principal")
 	}
 	cTna, err := decimal.NewFromString(*cTnaStr)
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "invalid --caucion-tna")
-		if err != nil {
-			return
-		}
-		os.Exit(2)
+		die(2, "invalid --caucion-tna")
 	}
 	fees, err := decimal.NewFromString(*feesStr)
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "invalid --fees")
-		if err != nil {
-			return
-		}
-		os.Exit(2)
+		die(2, "invalid --fees")
 	}
 	taxes, err := decimal.NewFromString(*taxesStr)
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "invalid --taxes")
-		if err != nil {
-			return
-		}
-		os.Exit(2)
+		die(2, "invalid --taxes")
 	}
 	pfTna, err := decimal.NewFromString(*pfTnaStr)
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "invalid --pf-tna")
-		if err != nil {
-			return
-		}
-		os.Exit(2)
+		die(2, "invalid --pf-tna")
 	}
 	mmTna, err := decimal.NewFromString(*mmTnaStr)
 	if err != nil {
-		_, err := fmt.Fprintln(os.Stderr, "invalid --mm-tna")
-		if err != nil {
-			return
-		}
-		os.Exit(2)
+		die(2, "invalid --mm-tna")
 	}
 
 	out := compare.Run(compare.CompareInput{

@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"errors"
 	"time"
 
 	"github.com/shopspring/decimal"
@@ -35,7 +34,7 @@ var (
 	daysInYear = decimal.NewFromInt(360)
 )
 
-// GrossInterest = Principal * (TNA/100) * (TermDays/365)
+// GrossInterest = Principal * (TNA/100) * (TermDays/360)
 func ComputeGrossInterest(principal, tna decimal.Decimal, termDays int) decimal.Decimal {
 	td := decimal.NewFromInt(int64(termDays))
 
@@ -61,22 +60,30 @@ func newID() (string, error) {
 
 func (s *CaucionService) Create(ctx context.Context, in CreateCaucionInput) (domain.Caucion, error) {
 	if in.TermDays <= 0 {
-		return domain.Caucion{}, errors.New("termDays must be > 0")
+		return domain.Caucion{}, &domain.ErrValidation{Field: "termDays", Message: "must be > 0"}
 	}
 	if in.Principal.Cmp(decimal.Zero) <= 0 {
-		return domain.Caucion{}, errors.New("principal must be > 0")
+		return domain.Caucion{}, &domain.ErrValidation{Field: "principal", Message: "must be > 0"}
 	}
 	if in.TNA.Cmp(decimal.Zero) <= 0 {
-		return domain.Caucion{}, errors.New("TNA must be > 0")
+		return domain.Caucion{}, &domain.ErrValidation{Field: "TNA", Message: "must be > 0"}
 	}
 	if in.Fees.Cmp(decimal.Zero) < 0 {
-		return domain.Caucion{}, errors.New("fees must be >= 0")
+		return domain.Caucion{}, &domain.ErrValidation{Field: "fees", Message: "must be >= 0"}
 	}
 	if in.Taxes.Cmp(decimal.Zero) < 0 {
-		return domain.Caucion{}, errors.New("taxes must be >= 0")
+		return domain.Caucion{}, &domain.ErrValidation{Field: "taxes", Message: "must be >= 0"}
 	}
 	if in.Broker == "" {
 		in.Broker = "Balanz"
+	}
+
+	gross := ComputeGrossInterest(in.Principal, in.TNA, in.TermDays)
+	if in.Fees.Add(in.Taxes).GreaterThan(gross) {
+		return domain.Caucion{}, &domain.ErrValidation{
+			Field:   "fees+taxes",
+			Message: "fees+taxes exceed gross interest",
+		}
 	}
 
 	id, err := newID()
@@ -89,8 +96,6 @@ func (s *CaucionService) Create(ctx context.Context, in CreateCaucionInput) (dom
 		tradeDate = time.Now()
 	}
 	maturity := tradeDate.AddDate(0, 0, in.TermDays)
-
-	gross := ComputeGrossInterest(in.Principal, in.TNA, in.TermDays)
 
 	net := gross.
 		Sub(in.Fees).

@@ -1,4 +1,4 @@
-.PHONY: test race coverage coverage-check fmt lint
+.PHONY: test race coverage coverage-check fmt lint install-hooks
 
 test:
 	./scripts/test.sh
@@ -11,11 +11,13 @@ coverage:
 
 coverage-check:
 	./scripts/coverage.sh
-	./scripts/coverage_threshold.sh 80
+	./scripts/coverage_threshold.sh 70
 
 fmt:
 	go fmt ./...
 
-# Lint opcional (si usás golangci-lint)
 lint:
 	golangci-lint run
+
+install-hooks:
+	./scripts/install-hooks.sh

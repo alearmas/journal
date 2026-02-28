@@ -104,16 +104,43 @@ ORDER BY trade_date ASC, created_at ASC
 			return nil, err
 		}
 
-		tradeDate, _ := time.Parse(time.RFC3339, tradeDateS)
-		maturity, _ := time.Parse(time.RFC3339, maturityS)
-		createdAt, _ := time.Parse(time.RFC3339, createdS)
+		tradeDate, err := time.Parse(time.RFC3339, tradeDateS)
+		if err != nil {
+			return nil, &ErrParse{Field: "trade_date", Value: tradeDateS, Err: err}
+		}
+		maturity, err := time.Parse(time.RFC3339, maturityS)
+		if err != nil {
+			return nil, &ErrParse{Field: "maturity_date", Value: maturityS, Err: err}
+		}
+		createdAt, err := time.Parse(time.RFC3339, createdS)
+		if err != nil {
+			return nil, &ErrParse{Field: "created_at", Value: createdS, Err: err}
+		}
 
-		principal, _ := decimalFromStringSafe(principalS)
-		tna, _ := decimalFromStringSafe(tnaS)
-		gross, _ := decimalFromStringSafe(grossS)
-		fees, _ := decimalFromStringSafe(feesS)
-		taxes, _ := decimalFromStringSafe(taxesS)
-		net, _ := decimalFromStringSafe(netS)
+		principal, err := decimalFromStringSafe(principalS)
+		if err != nil {
+			return nil, &ErrParse{Field: "principal", Value: principalS, Err: err}
+		}
+		tna, err := decimalFromStringSafe(tnaS)
+		if err != nil {
+			return nil, &ErrParse{Field: "tna", Value: tnaS, Err: err}
+		}
+		gross, err := decimalFromStringSafe(grossS)
+		if err != nil {
+			return nil, &ErrParse{Field: "gross_interest", Value: grossS, Err: err}
+		}
+		fees, err := decimalFromStringSafe(feesS)
+		if err != nil {
+			return nil, &ErrParse{Field: "fees", Value: feesS, Err: err}
+		}
+		taxes, err := decimalFromStringSafe(taxesS)
+		if err != nil {
+			return nil, &ErrParse{Field: "taxes", Value: taxesS, Err: err}
+		}
+		net, err := decimalFromStringSafe(netS)
+		if err != nil {
+			return nil, &ErrParse{Field: "net_interest", Value: netS, Err: err}
+		}
 
 		out = append(out, Caucion{
 			ID:            id,
@@ -132,6 +159,10 @@ ORDER BY trade_date ASC, created_at ASC
 		})
 	}
 	return out, rows.Err()
+}
+
+func (r *SQLiteRepository) Close() error {
+	return r.db.Close()
 }
 
 // Keep it local to domain to avoid circular deps.

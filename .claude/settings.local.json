@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(git config:*)",
+      "Bash(go list:*)",
+      "Bash(go mod graph:*)",
+      "Bash(go vulncheck:*)",
+      "Bash(chmod:*)",
+      "Bash(go build:*)",
+      "Bash(go test:*)",
+      "Bash(./scripts/coverage.sh:*)",
+      "Bash(./scripts/coverage_threshold.sh:*)",
+      "Bash(go vet ./...)"
+    ]
+  }
+}
