@@ -323,6 +323,146 @@ func TestCLI_AddInvalidDecimal(t *testing.T) {
 	}
 }
 
+func TestCLI_DepositAndBalance_JSON(t *testing.T) {
+	bin := buildBinary(t)
+	tmp := t.TempDir()
+	env := append(os.Environ(),
+		"JOURNAL_STORE=json",
+		"JOURNAL_DATA="+filepath.Join(tmp, "cauciones.json"),
+		"JOURNAL_MOVEMENTS="+filepath.Join(tmp, "movimientos.json"),
+	)
+
+	// Deposit
+	depCmd := exec.Command(bin, "deposit",
+		"--broker", "Balanz",
+		"--amount", "1000000",
+		"--date", "2026-01-01",
+		"--notes", "inicial",
+	)
+	depCmd.Env = env
+	out, err := depCmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("deposit: %v\n%s", err, out)
+	}
+	if !strings.Contains(string(out), "Deposito registrado") {
+		t.Fatalf("expected deposit confirmation, got: %s", out)
+	}
+
+	// Balance should show the deposit
+	balCmd := exec.Command(bin, "balance")
+	balCmd.Env = env
+	out, err = balCmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("balance: %v\n%s", err, out)
+	}
+	if !strings.Contains(string(out), "Balanz") {
+		t.Fatalf("expected Balanz in balance, got: %s", out)
+	}
+	if !strings.Contains(string(out), "1000000.00") {
+		t.Fatalf("expected 1000000.00 in balance, got: %s", out)
+	}
+}
+
+func TestCLI_WithdrawCmd_JSON(t *testing.T) {
+	bin := buildBinary(t)
+	tmp := t.TempDir()
+	env := append(os.Environ(),
+		"JOURNAL_STORE=json",
+		"JOURNAL_DATA="+filepath.Join(tmp, "cauciones.json"),
+		"JOURNAL_MOVEMENTS="+filepath.Join(tmp, "movimientos.json"),
+	)
+
+	// Withdraw
+	wCmd := exec.Command(bin, "withdraw",
+		"--broker", "Balanz",
+		"--amount", "200000",
+		"--date", "2026-02-01",
+	)
+	wCmd.Env = env
+	out, err := wCmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("withdraw: %v\n%s", err, out)
+	}
+	if !strings.Contains(string(out), "Retiro registrado") {
+		t.Fatalf("expected withdraw confirmation, got: %s", out)
+	}
+}
+
+func TestCLI_BalanceBrokerFilter_JSON(t *testing.T) {
+	bin := buildBinary(t)
+	tmp := t.TempDir()
+	env := append(os.Environ(),
+		"JOURNAL_STORE=json",
+		"JOURNAL_DATA="+filepath.Join(tmp, "cauciones.json"),
+		"JOURNAL_MOVEMENTS="+filepath.Join(tmp, "movimientos.json"),
+	)
+
+	// Add deposit for two brokers
+	for _, broker := range []string{"Balanz", "BYMA"} {
+		cmd := exec.Command(bin, "deposit",
+			"--broker", broker, "--amount", "500000", "--date", "2026-01-01")
+		cmd.Env = env
+		if out, err := cmd.CombinedOutput(); err != nil {
+			t.Fatalf("deposit %s: %v\n%s", broker, err, out)
+		}
+	}
+
+	// Filter balance by Balanz only
+	balCmd := exec.Command(bin, "balance", "--broker", "Balanz")
+	balCmd.Env = env
+	out, err := balCmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("balance: %v\n%s", err, out)
+	}
+	if !strings.Contains(string(out), "Balanz") {
+		t.Fatalf("expected Balanz, got: %s", out)
+	}
+	if strings.Contains(string(out), "BYMA") {
+		t.Fatalf("expected BYMA to be filtered out, got: %s", out)
+	}
+}
+
+func TestCLI_BalanceEmpty_JSON(t *testing.T) {
+	bin := buildBinary(t)
+	tmp := t.TempDir()
+	env := append(os.Environ(),
+		"JOURNAL_STORE=json",
+		"JOURNAL_DATA="+filepath.Join(tmp, "cauciones.json"),
+		"JOURNAL_MOVEMENTS="+filepath.Join(tmp, "movimientos.json"),
+	)
+
+	cmd := exec.Command(bin, "balance")
+	cmd.Env = env
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("balance empty: %v\n%s", err, out)
+	}
+	if !strings.Contains(string(out), "No hay datos") {
+		t.Fatalf("expected empty message, got: %s", out)
+	}
+}
+
+func TestCLI_DepositValidationError_JSON(t *testing.T) {
+	bin := buildBinary(t)
+	tmp := t.TempDir()
+	env := append(os.Environ(),
+		"JOURNAL_STORE=json",
+		"JOURNAL_DATA="+filepath.Join(tmp, "cauciones.json"),
+		"JOURNAL_MOVEMENTS="+filepath.Join(tmp, "movimientos.json"),
+	)
+
+	// amount=0 should fail validation
+	cmd := exec.Command(bin, "deposit", "--amount", "0", "--broker", "Balanz")
+	cmd.Env = env
+	out, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatal("expected error for zero amount")
+	}
+	if !strings.Contains(string(out), "error:") {
+		t.Fatalf("expected error message, got: %s", out)
+	}
+}
+
 func TestCLI_AddAndList_SQLite(t *testing.T) {
 	bin := buildBinary(t)
 	tmp := t.TempDir()
