@@ -2,6 +2,7 @@ package service
 
 import (
 	"alearmas/tradingJournal/internal/domain"
+	"alearmas/tradingJournal/internal/port"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -22,10 +23,10 @@ type CreateCaucionInput struct {
 }
 
 type CaucionService struct {
-	repo domain.CaucionRepository
+	repo port.CaucionRepository
 }
 
-func NewCaucionService(repo domain.CaucionRepository) *CaucionService {
+func NewCaucionService(repo port.CaucionRepository) *CaucionService {
 	return &CaucionService{repo: repo}
 }
 

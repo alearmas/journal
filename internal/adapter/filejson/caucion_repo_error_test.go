@@ -1,6 +1,7 @@
-package domain_test
+package filejson_test
 
 import (
+	"alearmas/tradingJournal/internal/adapter/filejson"
 	"alearmas/tradingJournal/internal/domain"
 	"context"
 	"errors"
@@ -13,12 +14,11 @@ func TestFileJSONRepository_ListEmptyFile(t *testing.T) {
 	tmp := t.TempDir()
 	path := filepath.Join(tmp, "empty.json")
 
-	// Create an empty file
 	if err := os.WriteFile(path, []byte{}, 0o644); err != nil {
 		t.Fatal(err)
 	}
 
-	repo := domain.NewFileJSONRepository(path)
+	repo := filejson.NewFileJSONRepository(path)
 	items, err := repo.List(context.Background())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -29,7 +29,7 @@ func TestFileJSONRepository_ListEmptyFile(t *testing.T) {
 }
 
 func TestFileJSONRepository_ListNonExistentFile(t *testing.T) {
-	repo := domain.NewFileJSONRepository("/nonexistent/path/data.json")
+	repo := filejson.NewFileJSONRepository("/nonexistent/path/data.json")
 	items, err := repo.List(context.Background())
 	if err != nil {
 		t.Fatalf("unexpected error for non-existent file: %v", err)
@@ -47,7 +47,7 @@ func TestFileJSONRepository_ListInvalidJSON(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	repo := domain.NewFileJSONRepository(path)
+	repo := filejson.NewFileJSONRepository(path)
 	_, err := repo.List(context.Background())
 	if err == nil {
 		t.Fatal("expected error for invalid JSON, got nil")
@@ -66,7 +66,7 @@ func TestFileJSONRepository_AppendCreatesDirectory(t *testing.T) {
 	tmp := t.TempDir()
 	path := filepath.Join(tmp, "sub", "dir", "data.json")
 
-	repo := domain.NewFileJSONRepository(path)
+	repo := filejson.NewFileJSONRepository(path)
 	c := domain.Caucion{ID: "test-1", Broker: "Test"}
 
 	if err := repo.Append(context.Background(), c); err != nil {
@@ -91,7 +91,7 @@ func TestFileJSONRepository_ListReadPermissionError(t *testing.T) {
 	}
 	defer os.Chmod(path, 0o644) //nolint:errcheck
 
-	repo := domain.NewFileJSONRepository(path)
+	repo := filejson.NewFileJSONRepository(path)
 	_, err := repo.List(context.Background())
 	if err == nil {
 		t.Fatal("expected error for unreadable file, got nil")

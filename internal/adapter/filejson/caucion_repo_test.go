@@ -1,6 +1,7 @@
-package domain_test
+package filejson_test
 
 import (
+	"alearmas/tradingJournal/internal/adapter/filejson"
 	"alearmas/tradingJournal/internal/domain"
 	"context"
 	"path/filepath"
@@ -22,7 +23,7 @@ func TestFileJSONRepository_AppendAndList(t *testing.T) {
 	tmp := t.TempDir()
 	path := filepath.Join(tmp, "cauciones.json")
 
-	repo := domain.NewFileJSONRepository(path)
+	repo := filejson.NewFileJSONRepository(path)
 
 	c1 := domain.Caucion{
 		ID: "1", Broker: "Balanz",

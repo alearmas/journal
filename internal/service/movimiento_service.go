@@ -2,6 +2,7 @@ package service
 
 import (
 	"alearmas/tradingJournal/internal/domain"
+	"alearmas/tradingJournal/internal/port"
 	"context"
 	"time"
 
@@ -17,10 +18,10 @@ type RegisterMovimientoInput struct {
 }
 
 type MovimientoService struct {
-	repo domain.MovimientoRepository
+	repo port.MovimientoRepository
 }
 
-func NewMovimientoService(repo domain.MovimientoRepository) *MovimientoService {
+func NewMovimientoService(repo port.MovimientoRepository) *MovimientoService {
 	return &MovimientoService{repo: repo}
 }
 

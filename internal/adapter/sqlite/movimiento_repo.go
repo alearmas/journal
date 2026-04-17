@@ -1,6 +1,7 @@
-package domain
+package sqlite
 
 import (
+	"alearmas/tradingJournal/internal/domain"
 	"context"
 	"database/sql"
 	"time"
@@ -9,10 +10,12 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+// MovimientoSQLiteRepository persists movimientos in a SQLite database.
 type MovimientoSQLiteRepository struct {
 	db *sql.DB
 }
 
+// NewMovimientoSQLiteRepository opens (or creates) the database at dbPath.
 func NewMovimientoSQLiteRepository(dbPath string) (*MovimientoSQLiteRepository, error) {
 	db, err := sql.Open("sqlite", dbPath)
 	if err != nil {
@@ -42,7 +45,7 @@ CREATE TABLE IF NOT EXISTS movimientos (
 	return err
 }
 
-func (r *MovimientoSQLiteRepository) Append(ctx context.Context, m Movimiento) error {
+func (r *MovimientoSQLiteRepository) Append(ctx context.Context, m domain.Movimiento) error {
 	_, err := r.db.ExecContext(ctx, `
 INSERT INTO movimientos (id, broker, date, type, amount, notes, created_at)
 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -58,7 +61,7 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 	return err
 }
 
-func (r *MovimientoSQLiteRepository) List(ctx context.Context) ([]Movimiento, error) {
+func (r *MovimientoSQLiteRepository) List(ctx context.Context) ([]domain.Movimiento, error) {
 	rows, err := r.db.QueryContext(ctx, `
 SELECT id, broker, date, type, amount, notes, created_at
 FROM movimientos
@@ -69,10 +72,10 @@ ORDER BY date ASC, created_at ASC
 	}
 	defer func() { _ = rows.Close() }()
 
-	var out []Movimiento
+	var out []domain.Movimiento
 	for rows.Next() {
 		var (
-			id, broker, dateS, typ string
+			id, broker, dateS, typ   string
 			amountS, notes, createdS string
 		)
 
@@ -82,22 +85,22 @@ ORDER BY date ASC, created_at ASC
 
 		date, err := time.Parse(time.RFC3339, dateS)
 		if err != nil {
-			return nil, &ErrParse{Field: "date", Value: dateS, Err: err}
+			return nil, &domain.ErrParse{Field: "date", Value: dateS, Err: err}
 		}
 		createdAt, err := time.Parse(time.RFC3339, createdS)
 		if err != nil {
-			return nil, &ErrParse{Field: "created_at", Value: createdS, Err: err}
+			return nil, &domain.ErrParse{Field: "created_at", Value: createdS, Err: err}
 		}
 		amount, err := decimal.NewFromString(amountS)
 		if err != nil {
-			return nil, &ErrParse{Field: "amount", Value: amountS, Err: err}
+			return nil, &domain.ErrParse{Field: "amount", Value: amountS, Err: err}
 		}
 
-		out = append(out, Movimiento{
+		out = append(out, domain.Movimiento{
 			ID:        id,
 			Broker:    broker,
 			Date:      date,
-			Type:      MovimientoTipo(typ),
+			Type:      domain.MovimientoTipo(typ),
 			Amount:    amount,
 			Notes:     notes,
 			CreatedAt: createdAt,
@@ -106,6 +109,7 @@ ORDER BY date ASC, created_at ASC
 	return out, rows.Err()
 }
 
+// Close releases the underlying database connection.
 func (r *MovimientoSQLiteRepository) Close() error {
 	return r.db.Close()
 }

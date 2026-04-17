@@ -1,0 +1,691 @@
+basePath: /api/v1
+definitions:
+  handler.BrokerSummaryResponse:
+    properties:
+      available:
+        example: "1000000.00"
+        type: string
+      broker:
+        example: Balanz
+        type: string
+      deployed_principal:
+        example: "3000000.00"
+        type: string
+      net_balance:
+        example: "4000000.00"
+        type: string
+      pnl_percent:
+        example: "0.1904"
+        type: string
+      total_deposited:
+        example: "5000000.00"
+        type: string
+      total_net_interest:
+        example: "9520.00"
+        type: string
+      total_withdrawn:
+        example: "1000000.00"
+        type: string
+    type: object
+  handler.CaucionResponse:
+    properties:
+      broker:
+        example: Balanz
+        type: string
+      created_at:
+        example: "2026-01-10T12:00:00Z"
+        type: string
+      fees:
+        example: "50.00"
+        type: string
+      gross_interest:
+        example: "2375.00"
+        type: string
+      id:
+        example: a1b2c3d4e5f6240910ab
+        type: string
+      maturity_date:
+        example: "2026-01-11"
+        type: string
+      net_interest:
+        example: "1904.00"
+        type: string
+      notes:
+        example: overnight
+        type: string
+      principal:
+        example: "1000000.00"
+        type: string
+      taxes:
+        example: "421.00"
+        type: string
+      term_days:
+        example: 1
+        type: integer
+      tna:
+        example: "85.5"
+        type: string
+      trade_date:
+        example: "2026-01-10"
+        type: string
+    type: object
+  handler.CompareResponse:
+    properties:
+      caucion_net:
+        example: "1904.00"
+        type: string
+      days:
+        example: 1
+        type: integer
+      mm_gross:
+        example: "2083.33"
+        type: string
+      pf_gross:
+        example: "2222.22"
+        type: string
+      principal:
+        example: "1000000.00"
+        type: string
+    type: object
+  handler.CreateCaucionRequest:
+    properties:
+      broker:
+        example: Balanz
+        type: string
+      fees:
+        example: "50.00"
+        type: string
+      notes:
+        example: overnight
+        type: string
+      principal:
+        example: "1000000.00"
+        type: string
+      taxes:
+        example: "421.00"
+        type: string
+      term_days:
+        example: 1
+        type: integer
+      tna:
+        example: "85.5"
+        type: string
+      trade_date:
+        example: "2026-01-10"
+        type: string
+    type: object
+  handler.ErrorResponse:
+    properties:
+      error:
+        example: invalid request body
+        type: string
+    type: object
+  handler.MonthSummaryResponse:
+    properties:
+      count:
+        example: 5
+        type: integer
+      month:
+        example: 2026-01
+        type: string
+      total_fees:
+        example: "250.00"
+        type: string
+      total_gross:
+        example: "11875.00"
+        type: string
+      total_net:
+        example: "9520.00"
+        type: string
+      total_principal:
+        example: "5000000.00"
+        type: string
+      total_taxes:
+        example: "2105.00"
+        type: string
+      weighted_avg_tna:
+        example: "85.5"
+        type: string
+    type: object
+  handler.MovimientoResponse:
+    properties:
+      amount:
+        example: "1000000.00"
+        type: string
+      broker:
+        example: Balanz
+        type: string
+      created_at:
+        example: "2026-01-01T12:00:00Z"
+        type: string
+      date:
+        example: "2026-01-01"
+        type: string
+      id:
+        example: a1b2c3d4e5f6240910ab
+        type: string
+      notes:
+        example: transferencia inicial
+        type: string
+      type:
+        example: deposito
+        type: string
+    type: object
+  handler.RegisterMovimientoRequest:
+    properties:
+      amount:
+        example: "1000000.00"
+        type: string
+      broker:
+        example: Balanz
+        type: string
+      date:
+        example: "2026-01-01"
+        type: string
+      notes:
+        example: transferencia inicial
+        type: string
+    type: object
+  handler.SummaryResponse:
+    properties:
+      count:
+        example: 5
+        type: integer
+      total_fees:
+        example: "250.00"
+        type: string
+      total_gross:
+        example: "11875.00"
+        type: string
+      total_net:
+        example: "9520.00"
+        type: string
+      total_principal:
+        example: "5000000.00"
+        type: string
+      total_taxes:
+        example: "2105.00"
+        type: string
+    type: object
+  handler.SyncResponse:
+    properties:
+      cauciones_imported:
+        example: 2
+        type: integer
+      cauciones_skipped:
+        example: 0
+        type: integer
+      errors:
+        items:
+          type: string
+        type: array
+      movimientos_imported:
+        example: 3
+        type: integer
+      movimientos_skipped:
+        example: 5
+        type: integer
+    type: object
+  ppi.Movement:
+    properties:
+      agreementDate:
+        type: string
+      amount:
+        type: number
+      balance:
+        type: number
+      currency:
+        type: string
+      description:
+        type: string
+      price:
+        type: number
+      quantity:
+        type: number
+      settlementDate:
+        type: string
+      ticker:
+        type: string
+    type: object
+  ppi.Order:
+    properties:
+      amount:
+        description: principal
+        type: number
+      currency:
+        type: string
+      date:
+        description: trade date
+        type: string
+      externalID:
+        type: string
+      id:
+        type: integer
+      instrumentType:
+        type: string
+      operation:
+        description: e.g. "COLOCAR-CAUCIÓN"
+        type: string
+      operationMaxDate:
+        description: maturity date for cauciones
+        type: string
+      operationType:
+        type: string
+      orderType:
+        type: string
+      price:
+        description: TNA (%) for cauciones
+        type: number
+      quantity:
+        type: number
+      settlement:
+        description: e.g. "A-24HS"
+        type: string
+      status:
+        description: e.g. "TERMINADA", "PENDIENTE"
+        type: string
+      ticker:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: Trading Journal
+  description: REST API for the Trading Journal – track cauciones (fixed-term investments),
+    capital movements, and compare investment instruments.
+  title: Trading Journal API
+  version: "1.0"
+paths:
+  /capital/balance:
+    get:
+      description: 'Get capital summary per broker: deposits, withdrawals, deployed
+        principal, available cash, and P&L.'
+      parameters:
+      - description: Filter by broker name
+        example: Balanz
+        in: query
+        name: broker
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handler.BrokerSummaryResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Capital balance
+      tags:
+      - capital
+  /cauciones:
+    get:
+      description: Get all cauciones ordered by trade date ascending.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handler.CaucionResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: List cauciones
+      tags:
+      - cauciones
+    post:
+      consumes:
+      - application/json
+      description: Register a new caucion (fixed-term investment). Gross interest
+        = principal × (tna/100) × (term_days/360).
+      parameters:
+      - description: Caucion data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CreateCaucionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.CaucionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Create a caucion
+      tags:
+      - cauciones
+  /cauciones/export:
+    get:
+      description: Download cauciones as a CSV file. Optionally filter by month.
+      parameters:
+      - description: Optional month filter YYYY-MM
+        example: 2026-01
+        in: query
+        name: month
+        type: string
+      produces:
+      - text/csv
+      responses:
+        "200":
+          description: cauciones.csv
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Export CSV
+      tags:
+      - cauciones
+  /cauciones/report:
+    get:
+      description: Get aggregates and weighted-average TNA for a specific month (YYYY-MM).
+      parameters:
+      - description: Month in YYYY-MM format
+        example: 2026-01
+        in: query
+        name: month
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.MonthSummaryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Monthly report
+      tags:
+      - cauciones
+  /cauciones/summary:
+    get:
+      description: Get aggregate totals (principal, gross, fees, taxes, net) across
+        all cauciones.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.SummaryResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Global summary
+      tags:
+      - cauciones
+  /compare:
+    get:
+      description: Compare caución net return vs plazo fijo and money market gross
+        returns for the same principal and term.
+      parameters:
+      - description: Principal amount (decimal)
+        example: "1000000.00"
+        in: query
+        name: principal
+        required: true
+        type: string
+      - description: Term in days
+        example: 1
+        in: query
+        name: days
+        required: true
+        type: integer
+      - description: Caución TNA (%, e.g. 85.5)
+        example: "85.5"
+        in: query
+        name: caucion_tna
+        required: true
+        type: string
+      - description: Caución fees (decimal)
+        example: "50.00"
+        in: query
+        name: fees
+        type: string
+      - description: Caución taxes (decimal)
+        example: "421.00"
+        in: query
+        name: taxes
+        type: string
+      - description: Plazo fijo TNA (%, e.g. 80.0)
+        example: "80.0"
+        in: query
+        name: pf_tna
+        required: true
+        type: string
+      - description: Money market TNA (%, e.g. 75)
+        example: "75.0"
+        in: query
+        name: mm_tna
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.CompareResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Compare investment instruments
+      tags:
+      - compare
+  /movimientos:
+    get:
+      description: Get all capital movements (deposits and withdrawals) ordered by
+        date.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handler.MovimientoResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: List movimientos
+      tags:
+      - movimientos
+  /movimientos/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Register a capital deposit for a broker. Amount must be > 0.
+      parameters:
+      - description: Deposit data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.RegisterMovimientoRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.MovimientoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Register a deposit
+      tags:
+      - movimientos
+  /movimientos/withdraw:
+    post:
+      consumes:
+      - application/json
+      description: Register a capital withdrawal for a broker. Amount must be > 0.
+      parameters:
+      - description: Withdrawal data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.RegisterMovimientoRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.MovimientoResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Register a withdrawal
+      tags:
+      - movimientos
+  /ppi/movements:
+    get:
+      description: Returns the unprocessed movement list from PPI. Use this to inspect
+        field names and values before adjusting sync mappings.
+      parameters:
+      - description: 'Start date YYYY-MM-DD (default: 30 days ago)'
+        example: "2026-01-01"
+        in: query
+        name: date_from
+        type: string
+      - description: 'End date YYYY-MM-DD (default: today)'
+        example: "2026-03-06"
+        in: query
+        name: date_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ppi.Movement'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Raw PPI movements
+      tags:
+      - ppi-debug
+  /ppi/orders:
+    get:
+      description: Returns the unprocessed order list from PPI. Use this to verify
+        caucion field mapping (operation, price=TNA, amount=principal, operationMaxDate=maturity).
+      parameters:
+      - description: 'Start date YYYY-MM-DD (default: 30 days ago)'
+        example: "2026-01-01"
+        in: query
+        name: date_from
+        type: string
+      - description: 'End date YYYY-MM-DD (default: today)'
+        example: "2026-03-06"
+        in: query
+        name: date_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ppi.Order'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Raw PPI orders
+      tags:
+      - ppi-debug
+  /sync:
+    post:
+      description: Fetch capital movements and cauciones from PPI for the given date
+        range and import them. Defaults to the last 30 days.
+      parameters:
+      - description: 'Start date YYYY-MM-DD (default: 30 days ago)'
+        example: "2026-01-01"
+        in: query
+        name: date_from
+        type: string
+      - description: 'End date YYYY-MM-DD (default: today)'
+        example: "2026-03-06"
+        in: query
+        name: date_to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.SyncResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.ErrorResponse'
+      summary: Sync from PPI
+      tags:
+      - sync
+schemes:
+- http
+swagger: "2.0"

@@ -1,6 +1,7 @@
-package domain_test
+package filejson_test
 
 import (
+	"alearmas/tradingJournal/internal/adapter/filejson"
 	"alearmas/tradingJournal/internal/domain"
 	"context"
 	"path/filepath"
@@ -10,7 +11,7 @@ import (
 
 func TestMovimientoFileJSON_ListEmpty(t *testing.T) {
 	tmp := t.TempDir()
-	repo := domain.NewMovimientoFileJSONRepository(filepath.Join(tmp, "movimientos.json"))
+	repo := filejson.NewMovimientoFileJSONRepository(filepath.Join(tmp, "movimientos.json"))
 
 	items, err := repo.List(context.Background())
 	if err != nil {
@@ -23,7 +24,7 @@ func TestMovimientoFileJSON_ListEmpty(t *testing.T) {
 
 func TestMovimientoFileJSON_AppendAndList(t *testing.T) {
 	tmp := t.TempDir()
-	repo := domain.NewMovimientoFileJSONRepository(filepath.Join(tmp, "movimientos.json"))
+	repo := filejson.NewMovimientoFileJSONRepository(filepath.Join(tmp, "movimientos.json"))
 	ctx := context.Background()
 
 	m := domain.Movimiento{
@@ -31,7 +32,7 @@ func TestMovimientoFileJSON_AppendAndList(t *testing.T) {
 		Broker:    "Balanz",
 		Date:      time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC),
 		Type:      domain.Deposito,
-		Amount:    De("1000000"),
+		Amount:    D("1000000"),
 		Notes:     "test deposit",
 		CreatedAt: time.Date(2026, 1, 10, 9, 0, 0, 0, time.UTC),
 	}
@@ -65,14 +66,14 @@ func TestMovimientoFileJSON_AppendAndList(t *testing.T) {
 
 func TestMovimientoFileJSON_MultipleAppends(t *testing.T) {
 	tmp := t.TempDir()
-	repo := domain.NewMovimientoFileJSONRepository(filepath.Join(tmp, "movimientos.json"))
+	repo := filejson.NewMovimientoFileJSONRepository(filepath.Join(tmp, "movimientos.json"))
 	ctx := context.Background()
 
 	base := domain.Movimiento{
 		Broker:    "Balanz",
 		Date:      time.Date(2026, 1, 10, 0, 0, 0, 0, time.UTC),
 		Type:      domain.Deposito,
-		Amount:    De("500000"),
+		Amount:    D("500000"),
 		CreatedAt: time.Now(),
 	}
 
@@ -96,7 +97,7 @@ func TestMovimientoFileJSON_MultipleAppends(t *testing.T) {
 
 func TestMovimientoFileJSON_RetiroType(t *testing.T) {
 	tmp := t.TempDir()
-	repo := domain.NewMovimientoFileJSONRepository(filepath.Join(tmp, "movimientos.json"))
+	repo := filejson.NewMovimientoFileJSONRepository(filepath.Join(tmp, "movimientos.json"))
 	ctx := context.Background()
 
 	m := domain.Movimiento{
@@ -104,7 +105,7 @@ func TestMovimientoFileJSON_RetiroType(t *testing.T) {
 		Broker:    "Balanz",
 		Date:      time.Date(2026, 2, 1, 0, 0, 0, 0, time.UTC),
 		Type:      domain.Retiro,
-		Amount:    De("200000"),
+		Amount:    D("200000"),
 		CreatedAt: time.Now(),
 	}
 

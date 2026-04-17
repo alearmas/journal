@@ -1,10 +1,13 @@
 package main
 
 import (
+	"alearmas/tradingJournal/internal/adapter/filejson"
+	sqladapter "alearmas/tradingJournal/internal/adapter/sqlite"
 	"alearmas/tradingJournal/internal/capital"
 	"alearmas/tradingJournal/internal/compare"
 	"alearmas/tradingJournal/internal/domain"
 	"alearmas/tradingJournal/internal/export"
+	"alearmas/tradingJournal/internal/port"
 	"alearmas/tradingJournal/internal/report"
 	"alearmas/tradingJournal/internal/service"
 	"context"
@@ -31,23 +34,23 @@ func main() {
 	dataPath := getenv("JOURNAL_DATA", "data/cauciones.json")
 	store := getenv("JOURNAL_STORE", "json")
 
-	var repo domain.CaucionRepository
-	var mrepo domain.MovimientoRepository
+	var repo port.CaucionRepository
+	var mrepo port.MovimientoRepository
 
 	switch store {
 	case "json":
-		repo = domain.NewFileJSONRepository(dataPath)
+		repo = filejson.NewFileJSONRepository(dataPath)
 		mpath := getenv("JOURNAL_MOVEMENTS", "data/movimientos.json")
-		mrepo = domain.NewMovimientoFileJSONRepository(mpath)
+		mrepo = filejson.NewMovimientoFileJSONRepository(mpath)
 	case "sqlite":
 		dbPath := getenv("JOURNAL_DB", "data/journal.db")
-		sqlRepo, err := domain.NewSQLiteRepository(dbPath)
+		sqlRepo, err := sqladapter.NewSQLiteRepository(dbPath)
 		if err != nil {
 			die(1, "error opening sqlite: %v", err)
 		}
 		repo = sqlRepo
 
-		msqlRepo, err := domain.NewMovimientoSQLiteRepository(dbPath)
+		msqlRepo, err := sqladapter.NewMovimientoSQLiteRepository(dbPath)
 		if err != nil {
 			die(1, "error opening sqlite for movimientos: %v", err)
 		}

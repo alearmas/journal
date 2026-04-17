@@ -12,20 +12,20 @@ import (
 
 // BrokerSummary holds the capital and P&L breakdown for a single broker account.
 type BrokerSummary struct {
-	Broker string
+	Broker string `json:"broker"`
 
 	// Capital movements
-	TotalDeposited decimal.Decimal // sum of all deposits
-	TotalWithdrawn decimal.Decimal // sum of all withdrawals
-	NetBalance     decimal.Decimal // TotalDeposited - TotalWithdrawn
+	TotalDeposited decimal.Decimal `json:"total_deposited"` // sum of all deposits
+	TotalWithdrawn decimal.Decimal `json:"total_withdrawn"` // sum of all withdrawals
+	NetBalance     decimal.Decimal `json:"net_balance"`     // TotalDeposited - TotalWithdrawn
 
 	// Deployment (relative to now)
-	DeployedPrincipal decimal.Decimal // principal of cauciones where MaturityDate > now
-	Available         decimal.Decimal // NetBalance - DeployedPrincipal
+	DeployedPrincipal decimal.Decimal `json:"deployed_principal"` // principal of cauciones where MaturityDate > now
+	Available         decimal.Decimal `json:"available"`          // NetBalance - DeployedPrincipal
 
 	// Returns
-	TotalNetInterest decimal.Decimal // sum of NetInterest across ALL cauciones (active + matured)
-	PnLPercent       decimal.Decimal // TotalNetInterest / TotalDeposited * 100; 0 if no deposits
+	TotalNetInterest decimal.Decimal `json:"total_net_interest"` // sum of NetInterest across ALL cauciones (active + matured)
+	PnLPercent       decimal.Decimal `json:"pnl_percent"`        // TotalNetInterest / TotalDeposited * 100; 0 if no deposits
 }
 
 // Summarize builds a BrokerSummary per broker found in either movimientos or cauciones.
