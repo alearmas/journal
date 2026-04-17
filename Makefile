@@ -1,4 +1,4 @@
-.PHONY: test race coverage coverage-check fmt lint install-hooks
+.PHONY: test race coverage coverage-check fmt lint install-hooks swag server
 
 test:
 	./scripts/test.sh
@@ -21,3 +21,9 @@ lint:
 
 install-hooks:
 	./scripts/install-hooks.sh
+
+swag:
+	swag init -g cmd/server/main.go -o docs
+
+server:
+	go run ./cmd/server/...
